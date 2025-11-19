@@ -1,0 +1,31 @@
+Metadata-Version: 2.4
+Name: plaid-python
+Version: 37.1.0
+Summary: Python client library for the Plaid API and Link
+Home-page: https://github.com/plaid/plaid-python
+Download-URL: https://github.com/plaid/plaid-python/tarball/v37.1.0
+Author: Plaid Inc.
+Author-email: developers@plaid.com
+License: MIT
+Keywords: api,client,plaid
+Classifier: Development Status :: 4 - Beta
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Classifier: Environment :: Web Environment
+Requires-Python: >=3.6
+License-File: LICENSE
+Requires-Dist: urllib3>=1.25.3
+Requires-Dist: python-dateutil
+Requires-Dist: nulltype
+Dynamic: author
+Dynamic: author-email
+Dynamic: classifier
+Dynamic: download-url
+Dynamic: home-page
+Dynamic: keywords
+Dynamic: license
+Dynamic: license-file
+Dynamic: requires-dist
+Dynamic: requires-python
+Dynamic: summary
