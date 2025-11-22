@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Plaid Link</title>
+  <script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
+</head>
+
+<body>
+  <h2>Connect Your Bank's</h2>
+  <button id="link-button">Connect Bank Account</button>
+
+  <script>
+
+    // Step 1: Fetch link_token from backend
+    fetch("http://localhost:5000/create_link_token")
+      .then(res => res.json())
+      .then(data => {
+        const handler = Plaid.create({
+          token: data.link_token,
+
+
+          // Step 2: This runs after user connects bank
+          onSuccess: function(public_token, metadata) {
+            console.log("Public Token:", public_token);
+
+
+            // Step 3: Send token to backend
+            fetch("http://localhost:5000/exchange_public_token", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ public_token: public_token })
+            })
+            .then(r => r.json())
+            .then(result => {
+              alert("Bank Connected!");
+              console.log(result);
+            });
+          },
+
+          onExit: function(err, metadata) {
+            console.log("User exited:", err, metadata);
+          }
+        });
+
+        document.getElementById('link-button').onclick = function() {
+          handler.open();
+        };
+      });
+  </script>
+</body>
+</html>
