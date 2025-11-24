@@ -2,8 +2,8 @@ from Accounts import Accounts
 class CheckingAccounts(Accounts):
 
     
-    def __init__(self, dateOpened, bank, accountName, transcations, balance, accountNumber, routingNumber):
-        super().__init__(dateOpened, bank, accountName, transcations)
+    def __init__(self, dateOpened, bank, accountName, transactions, balance, accountNumber, routingNumber):
+        super().__init__(dateOpened, bank, accountName, transactions)
         self.balance = balance
         self.accountNumber = accountNumber
         self.routingNumber = routingNumber

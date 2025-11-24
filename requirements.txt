@@ -1,5 +1,6 @@
-python == 3.12.7
 python-dotenv==1.0.0
-plaid-python 37.1.0
-numpy = 2.3.4
-pandas = 2.3.3
+plaid-python==37.1.0
+numpy==2.3.4
+pandas==2.3.3
+fastapi==0.121.3
+uvicorn==0.38.0
