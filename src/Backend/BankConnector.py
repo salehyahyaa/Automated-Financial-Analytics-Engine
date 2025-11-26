@@ -30,6 +30,7 @@ class BankConnector:
         response = self.client.link_token_create(request)
         return response["link_token"]
 
+
     def exchange_public_token(self, public_token):#access_token //plaidDoc's made the method called that 
         request = ItemPublicTokenExchangeRequest(public_token=public_token)
         response = self.client.item_public_token_exchange(request)

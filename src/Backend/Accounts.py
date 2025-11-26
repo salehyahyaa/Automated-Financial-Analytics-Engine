@@ -14,7 +14,7 @@ class Accounts:
     def getMoreDetails(self):
         return f"Account Opened: {self.dateOpened}"
 
-
+        
 #---------------------------------------------------------------------------------------------------------
 
         
