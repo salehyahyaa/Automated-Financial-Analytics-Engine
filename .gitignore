@@ -1,1 +1,48 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Virtual environment
+venv/
+.venv/
+env/
+ENV/
+
+# IDE / OS junk
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# PyCharm / VS Code / etc.
+.idea/
+.vscode/
+*.sublime-*
+*.code-workspace
+
+# Local env files (never commit real keys!)
 .env
+.env.local
+.env.*.local
+
+# Logs & databases
+*.log
+*.sqlite3
+
+# Build / dist
+build/
+dist/
+*.egg-info/
