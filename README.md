@@ -5,10 +5,6 @@
 //4-6 bullet point features, COMING SOON
 
 ## Tech Stack
-**Frontend**
-- HTML
-
-**Backend**
 - Python
 - FastAPI (REST + WebSocket)
 - More information, CoimingSoon
