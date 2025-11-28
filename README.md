@@ -5,7 +5,7 @@
 //4-6 bullet point features
 
 
-## Getting Started
+## Setup
 //How to clone Repo and get the project started
 
 
