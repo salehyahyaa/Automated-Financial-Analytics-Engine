@@ -1,5 +1,4 @@
 # Automated Financial Analytics Engine
-
 1-2 sentences expaling what your projects about and its objective/benfit
 
  
@@ -8,7 +7,6 @@
 
 
 ## Getting Started
-
 //How to clone Repo and get the project started
 
 
