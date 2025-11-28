@@ -27,7 +27,7 @@ ehthumbs.db
 Thumbs.db
 desktop.ini
 
-# PyCharm / VS Code / etc.
+# VS Code
 .idea/
 .vscode/
 *.sublime-*
