@@ -4,8 +4,15 @@
 ## Features
 //4-6 bullet point features
 
+## Tech Stack
+Backend
+- Python
+- FastAPI
 
-## Setup
+Frontend
+- HTML
+
+## Installation
 //How to clone Repo and get the project started
 
 
