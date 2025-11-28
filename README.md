@@ -17,5 +17,5 @@ This project is licensed under the MIT License – see the LICENSE file for deta
 
 
 ## Contact / Support
-- Email: Salehayhya10.20@gmail.com\
+- Email: Salehayhya10.20@gmail.com
 - LinkedIn: https://www.linkedin.com/in/salehyahya1/
