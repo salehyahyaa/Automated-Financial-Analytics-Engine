@@ -18,28 +18,30 @@ bank = BankConnector(PLAID_CLIENT_ID, PLAID_SECRET, PLAID_ENV)
 def createLinkToken():
     try:
         link_token = bank.create_link_token()                                #assign the LinkToken to var
-        if link_token == None: 
+        if link_token is None: 
             raise HTTPException(500, detail = "Link Token Failed to create") #only if we have no token returned #tackling potionel error's before actully telling endpoint what to do
         return {"link_token": link_token}                                    #return link_token 
     except Exception as e:
-        raise HTTPException(500, details = f"ServerSide Error: {str(e)}")
+        raise HTTPException(500, detail = f"ServerSide Error: {str(e)}")
 
 
 @router.post("/exchange_public_token", status_code = 200)           #giving plaid our verificaiton("acess_token") to get access to accounts
 def getAccessToken(body: dict):                                     #accepting Access_tokens as dicts
     try:
         if "public_token" not in body:                              #publicKey is what we send to Plaid to recive accessToken to login
-            raise HTTPException (400, details = "EngineeringError, frontend needs PUBLIC TOKEN")
+            raise HTTPException (400, detail = "EngineeringError, frontend needs PUBLIC TOKEN")
         public_token = body["public_token"]
         if public_token is None: 
-            raise HTTPException(400, detials = "frontend needs PUBLIC TOKEN to request accessToken")
+            raise HTTPException(400, detail = "frontend needs PUBLIC TOKEN to request accessToken")
 
         access_token = bank.exchange_public_token(public_token)         
-        if access_token == None:
-            raise HTTPException (500, details = "Server error")
+        if access_token is None:
+            raise HTTPException (500, detail = "Server error")
         return {"access_token": access_token}
+    except HTTPException:  #Add this block BEFORE except Exception
+        raise  # Re-raise HTTPExceptions to preserve status codes
     except Exception as e:                                          #The second catches unexpected errors and converts them to 500, Both is needed
-        raise HTTPException(status_code=500, detail=f"Server error: {str(e)}") #always good practice to include this Ecpection at the end of every try exepct endpoint ALWAYS 
+        raise HTTPException(status_code=500, detail =f"Server error: {str(e)}") #always good practice to include this Ecpection at the end of every try exepct endpoint ALWAYS 
 
 
 

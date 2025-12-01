@@ -4,6 +4,8 @@ from plaid.model.link_token_create_request_user import LinkTokenCreateRequestUse
 from plaid.model.item_public_token_exchange_request import ItemPublicTokenExchangeRequest
 from plaid import ApiClient, Configuration
 from plaid.model.accounts_balance_get_request import AccountsBalanceGetRequest
+from plaid.model.country_code import CountryCode
+from plaid.model.products import Products
 import os
 #Purpose of this file is to hold our credientals and automate our verification to plaid everytime we send a req
 
@@ -23,24 +25,23 @@ class BankConnector:
         request = LinkTokenCreateRequest(
             user=LinkTokenCreateRequestUser(client_user_id="USER"), 
             client_name="Automated Financial Analytics Engine",
-            products=["auth", "transactions", "balances", "investments", "assets", "identity"], #need to establish whitch PlaidProducts you want to use otherwise you cannot use its endpoints
-            country_codes=["US"],
+            products=[Products.AUTH, Products.TRANSACTIONS, Products.BALANCES, Products.INVESTMENTS, Products.ASSETS, Products.IDENTITY], #need to establish whitch PlaidProducts you want to use otherwise you cannot use its endpoints
+            country_codes=[CountryCode.US],
             language="en"
         )
         response = self.client.link_token_create(request)
-        return response["link_token"]
-
+        return response.link_token
 
     def exchange_public_token(self, public_token):#access_token //plaidDoc's made the method called that 
         request = ItemPublicTokenExchangeRequest(public_token=public_token)
         response = self.client.item_public_token_exchange(request)
-        return response["access_token"]
+        return response.access_token
 
 
     def getAccounts(self, access_token): # Pull real time balance information for each account associated
         request = AccountsBalanceGetRequest(access_token=access_token)
         response = self.client.accounts_balance_get(request)
-        accounts = response['accounts']
+        accounts = response.accounts
         return accounts 
  
     
