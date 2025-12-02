@@ -23,7 +23,7 @@ class BankConnector:
         request = LinkTokenCreateRequest(
             user=LinkTokenCreateRequestUser(client_user_id="USER"), 
             client_name="Automated Financial Analytics Engine",
-            products=[Product.AUTH, Product.TRANSACTIONS, Product.BALANCES, Product.INVESTMENTS, Product.ASSETS, Product.IDENTITY], #need to establish whitch PlaidProducts you want to use otherwise you cannot use its endpoints
+            products=[Product.AUTH, Product.TRANSACTIONS, Product.BALANCES, Product.INVESTMENTS, Product.ASSETS], #need to establish whitch PlaidProducts you want to use otherwise you cannot use its endpoints
             country_codes=["US"], 
             language="en"
         )
