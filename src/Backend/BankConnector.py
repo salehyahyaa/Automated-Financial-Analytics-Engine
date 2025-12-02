@@ -30,7 +30,7 @@ class BankConnector:
             Products.BALANCES,
             Products.INVESTMENTS,
             Products.ASSETS
-                    ], 
+            ], 
             country_codes=["US"], 
             language="en"
         )
