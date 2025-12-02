@@ -4,6 +4,7 @@ from plaid.model.link_token_create_request_user import LinkTokenCreateRequestUse
 from plaid.model.item_public_token_exchange_request import ItemPublicTokenExchangeRequest
 from plaid import ApiClient, Configuration
 from plaid.model.accounts_balance_get_request import AccountsBalanceGetRequest
+from plaid.model.products import Products
 import os
 #Purpose of this file is to hold our credientals and automate our verification to plaid everytime we send a req
 
@@ -23,8 +24,14 @@ class BankConnector:
         request = LinkTokenCreateRequest(
             user=LinkTokenCreateRequestUser(client_user_id="USER"), 
             client_name="Automated Financial Analytics Engine",
-            products=["auth", "transactions", "balances", "investments", "assets", "identity"], #need to establish whitch PlaidProducts you want to use otherwise you cannot use its endpoints
-            country_codes=["US"],
+            products= [ #need to establish whitch PlaidProducts you want to use otherwise you cannot use its endpoints
+            Products.AUTH,
+            Products.TRANSACTIONS,
+            Products.BALANCES,
+            Products.INVESTMENTS,
+            Products.ASSETS
+                    ], 
+            country_codes=["US"], 
             language="en"
         )
         response = self.client.link_token_create(request)
