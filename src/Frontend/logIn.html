@@ -13,28 +13,36 @@
   <script>
 
     // Step 1: Fetch link_token from backend
-    fetch("http://localhost:5000/create_link_token")
-      .then(res => res.json())
+    fetch("http://127.0.0.1:5000/create_link_token")
+      .then(res => {
+        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+        return res.json();
+      })
       .then(data => {
         const handler = Plaid.create({
           token: data.link_token,
-
 
           // Step 2: This runs after user connects bank
           onSuccess: function(public_token, metadata) {
             console.log("Public Token:", public_token);
 
-
             // Step 3: Send token to backend
-            fetch("http://localhost:5000/exchange_public_token", {
+            fetch("http://127.0.0.1:5000/exchange_public_token", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ public_token: public_token })
             })
-            .then(r => r.json())
+            .then(r => {
+              if (!r.ok) throw new Error(`HTTP error! status: ${r.status}`);
+              return r.json();
+            })
             .then(result => {
               alert("Bank Connected!");
               console.log(result);
+            })
+            .catch(err => {
+              console.error("Error exchanging token:", err);
+              alert("Error connecting bank: " + err.message);
             });
           },
 
@@ -46,6 +54,10 @@
         document.getElementById('link-button').onclick = function() {
           handler.open();
         };
+      })
+      .catch(error => {
+        console.error("Error fetching link token:", error);
+        alert("Failed to connect to backend. Make sure server is running on port 8000.");
       });
   </script>
 </body>

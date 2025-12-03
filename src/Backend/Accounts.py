@@ -8,13 +8,11 @@ class Accounts:
 
         
     def getAccount(self):
-        return f"{self.bank} + {self.accountName}"
+        return f"{self.bank} + {self.accountname}"
     
 
     def getMoreDetails(self):
         return f"Account Opened: {self.dateOpened}"
-
-        
 #---------------------------------------------------------------------------------------------------------
 
         

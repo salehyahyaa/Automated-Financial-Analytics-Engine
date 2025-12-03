@@ -11,14 +11,14 @@ class CheckingAccounts(Accounts):
 
     def getBankAccount(self):
         return (
-            f"{self.getAccount}"
+            f"{self.getAccount()}\n"
             f"Balance: {self.balance}"
         )
     
 
     def getMoreBankAccountInfo(self):
         return (
-            f"Account Number: {self.accountNumber}"
+            f"Account Number: {self.accountNumber}\n"
             f"Routing Number: {self.routingNumber}"
         )
 
