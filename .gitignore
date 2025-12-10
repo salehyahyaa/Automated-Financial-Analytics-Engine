@@ -17,7 +17,7 @@ venv/
 env/
 ENV/
 
-# IDE / OS junk
+# OS
 .DS_Store
 .DS_Store?
 ._*
@@ -27,13 +27,13 @@ ehthumbs.db
 Thumbs.db
 desktop.ini
 
-# PyCharm / VS Code / etc.
+# Code
 .idea/
 .vscode/
 *.sublime-*
 *.code-workspace
 
-# Local env files (never commit real keys!)
+# env
 .env
 .env.local
 .env.*.local

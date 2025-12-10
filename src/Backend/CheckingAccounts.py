@@ -4,15 +4,17 @@ class CheckingAccounts(Accounts):
     
     def __init__(self, dateOpened, bank, accountName, transactions, balance, accountNumber, routingNumber):
         super().__init__(dateOpened, bank, accountName, transactions)
-        self.balance = balance
+        self.__balance = balance
         self.accountNumber = accountNumber
         self.routingNumber = routingNumber
 
+    def getBalance(self):
+        return self.__balance
 
     def getBankAccount(self):
         return (
             f"{self.getAccount()}\n"
-            f"Balance: {self.balance}"
+            f"Balance: {self.getBalance()}"
         )
     
 

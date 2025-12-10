@@ -25,7 +25,7 @@ def createLinkToken():
         raise HTTPException(500, detail = f"ServerSide Error: {str(e)}")
 
  
-@router.post("/exchange_public_token", status_code = 200)           #giving plaid our verificaiton("acess_token") to get access to accounts
+@router.post("/exchange_public_token", status_code = 200)           #giving plaid our verificaiton("acess_token") -> get access to accounts
 def getAccessToken(body: dict):                                     #accepting Access_tokens as dicts
     try:
         if "public_token" not in body:                              #publicKey is what we send to Plaid to recive accessToken to login
@@ -40,7 +40,6 @@ def getAccessToken(body: dict):                                     #accepting A
         return {"access_token": access_token}
     except Exception as e:                                          #The second catches unexpected errors and converts them to 500, Both is needed
         raise HTTPException(status_code=500, detail=f"Server error: {str(e)}") #always good practice to include this Ecpection at the end of every try exepct endpoint ALWAYS 
-
 
 
 

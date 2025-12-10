@@ -33,7 +33,7 @@ class PlaidConnector:
             user=LinkTokenCreateRequestUser(client_user_id="USER"), 
             client_name="Automated Financial Analytics Engine",
 
-            products=[Products("auth"), Products("transactions")],                        #need to establish whitch PlaidProducts you want to use otherwise you cannot use its endpoints                                                                                   
+            products=[Products("transactions")],   #Products("auth"), <-add LATER              #need to establish whitch PlaidProducts you want to use otherwise you cannot use its endpoints                                                                                   
             country_codes=[CountryCode("US")], 
             language="en"
         )
