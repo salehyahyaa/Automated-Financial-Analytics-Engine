@@ -20,6 +20,7 @@ ENV/
 # OS
 .DS_Store
 */.DS_Store
+src/backend/.DS_Store
 ._*
 .Spotlight-V100
 .Trashes
