@@ -46,3 +46,6 @@ desktop.ini
 build/
 dist/
 *.egg-info/
+
+# OTHERS
+ExternalDocs

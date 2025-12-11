@@ -3,4 +3,8 @@ plaid-python==37.1.0
 numpy==2.3.4
 pandas==2.3.3
 fastapi==0.121.3
+python-multipart==0.0.9 #for fastAPI 
 uvicorn==0.38.0
+supabase==2.25.1        #supabase
+httpx==0.28.1           #supabase
+asyncpg==0.29.0         #supbase
