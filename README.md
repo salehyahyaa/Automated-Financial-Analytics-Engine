@@ -9,7 +9,7 @@
 
 
 
-## <br>Tech Stack
+## <br>Technologies Used
 
 **Backend**
 - Python
