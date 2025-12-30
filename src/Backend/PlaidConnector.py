@@ -57,4 +57,3 @@ class PlaidConnector:
     
     def getTransactions(self):
         ...
-
