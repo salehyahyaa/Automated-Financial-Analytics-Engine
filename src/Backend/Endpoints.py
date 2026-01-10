@@ -3,8 +3,11 @@ from fastapi import APIRouter, HTTPException
 from fastapi import status 
 from dotenv import load_dotenv
 import os
+from database.Connection import Connection #from folder.file import class
+import psycopg2
 
 router = APIRouter()
+db = Connection() #remeber when captial this refers to a class name
 
 load_dotenv()
 PLAID_CLIENT_ID = os.getenv("PLAID_CLIENT_ID")
@@ -41,16 +44,13 @@ def getAccessToken(body: dict):                                     #accepting A
     except Exception as e:                                          #The second catches unexpected errors and converts them to 500, Both is needed
         raise HTTPException(status_code=500, detail=f"Server error: {str(e)}") #always good practice to include this Ecpection at the end of every try exepct endpoint ALWAYS 
 
-        connection.close()                      """                            
-                                                you can also think of connection as requests to the database, 
-                                                if we dont close the connection at the end the connection will stay open 
-                                                and besides it taking up memeory once we reach 100 requested connections to the database, postgres will start to reject 
-                                                ecause each prev connection stays alive and within the database so we need to close the connection everytime we open it
-                                                """
+        connection.close()                              
+                                                                                            """                            
+                                                                                                                                            you can also think of connection as requests to the database, 
+                                                                                                                                            if we dont close the connection at the end the connection will stay open 
+                                                                                                                                            and besides it taking up memeory once we reach 100 requested connections to the database, postgres will start to reject 
+                                                                                                                                            ecause each prev connection stays alive and within the database so we need to close the connection everytime we open it
+                                                                                            """
 
-
-
-
-
-
+...  #later
 
