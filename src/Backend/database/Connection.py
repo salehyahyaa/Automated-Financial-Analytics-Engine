@@ -6,6 +6,7 @@ load_dotenv()
 Connecting program to existing database 
 """
 
+
 class Connection:
 
                                                 #to connect to the db, we need the host, port, user, password, and 
