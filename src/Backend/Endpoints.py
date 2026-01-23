@@ -39,15 +39,5 @@ def getAccessToken(body: dict):                                                 
             raise 
         return {"access_token": access_token}
     except Exception as e:                                                      #The second catches unexpected errors and converts them to 500, Both is needed
-        raise HTTPException(status_code=500, detail=f"Server error: {str(e)}")  #always good practice to include this Ecpection at the end of every try exepct endpoint ALWAYS 
-
-                          
-...  #later
-"""
-                                                                                                                        
-                                                                                                                                            #you can also think of connection as requests to the database, 
-                                                                                                                                            #if we dont close the connection at the end the connection will stay open 
-                                                                                                                                            #and besides it taking up memeory once we reach 100 requested connections to the database, postgres will start to reject 
-                                                                                                                                            #ecause each prev connection stays alive and within the database so we need to close the connection everytime we open it
-
-"""
+        raise HTTPException(status_code=500, detail=f"Server error: {str(e)}")  #always good practice to include this Ecpection at the end of every try exepct endpoint ALWAYS         
+        
