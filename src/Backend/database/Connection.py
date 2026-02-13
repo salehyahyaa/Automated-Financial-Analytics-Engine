@@ -49,7 +49,7 @@ class Connection:
                 )
             except psycopg2.Error as e:
                 raise Exception(f"Connection to DB Failed: {e}")
-        # PRIVATE COMMENT: Return self.connection so caller can use it
+        # Return self.connection so caller can use it
         # Why: Method should return the connection object for convenience (even though it's also stored in self.connection)
         return self.connection
 
@@ -66,9 +66,13 @@ class Connection:
     
     def close_connection(self):
         if self.connection and not self.connection.closed:  # Check if connection exists and is not already closed
-            self.connection.close()                         # Close the connection
+            self.connection.close()                         
         self.connection = None                              # Set to None after closing
 
 
-
-            
+"""
+#you can also think of connection as requests to the database, 
+#if we dont close the connection at the end the connection will stay open 
+#and besides it taking up memeory once we reach 100 requested connections to the database, postgres will start to reject 
+#ecause each prev connection stays alive and within the database so we need to close the connection everytime we open it
+"""

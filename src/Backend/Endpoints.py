@@ -36,8 +36,15 @@ def getAccessToken(body: dict):                                                 
 
         access_token = bank.exchange_public_token(public_token)         
         if access_token == None:
-            raise 
+            raise HTTPException(500, detail="Server error")
         return {"access_token": access_token}
-    except Exception as e:                                                      #The second catches unexpected errors and converts them to 500, Both is needed
-        raise HTTPException(status_code=500, detail=f"Server error: {str(e)}")  #always good practice to include this Ecpection at the end of every try exepct endpoint ALWAYS         
-        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(500, detail=f"Server error: {str(e)}")
+
+#currently adding database logic to store data when endpoiints execute 
+#need to refactor plaidConnector.py and endpoints.py 
+#the objective is to learn what we are adding and also get the db's data to be automatically stored
+#once done connect to accounts and check if rows are updated
+#move onto next task 
