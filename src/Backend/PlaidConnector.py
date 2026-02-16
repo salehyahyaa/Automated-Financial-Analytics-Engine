@@ -24,7 +24,7 @@ class PlaidConnector:
             }
         )
 
-        api_client = ApiClient(self.config)                         #Creates the Plaid Client, allows authenticaiton every req
+        api_client = ApiClient(self.config)                         #Creates the Plaid Client, allows authentication every req
 
         self.client = plaid_api.PlaidApi(api_client)
 

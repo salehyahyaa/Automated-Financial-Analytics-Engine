@@ -19,7 +19,6 @@
 
 
 ## Setup
-
 ```bash
 git clone https://github.com/your-username/Automated-Financial-Analytics-Engine.git
 cd Automated-Financial-Analytics-Engine

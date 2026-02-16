@@ -8,8 +8,7 @@ import numpy as np
 app = FastAPI()
 
 
-# CORS middleware
-app.add_middleware(
+app.add_middleware( # CORS middleware
     CORSMiddleware,
     allow_origins=["*"],       # Allowing frontend to call backend
     allow_credentials=True,
@@ -18,10 +17,21 @@ app.add_middleware(
 )
 
 
-# Include all API endpoints
 app.include_router(router)   
 
-# Run server
+
+
+
+
+
+
+
+
+
+
+
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="127.0.0.1", port=5000)
