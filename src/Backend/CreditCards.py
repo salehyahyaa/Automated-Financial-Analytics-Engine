@@ -14,7 +14,7 @@ class CreditCards(Accounts):
     def getBalance(self):
         return self.__balance
     
-    def getCredCard(self):
+    def getCreditCard(self):
             return (
             f"{self.getAccount()}\n"
             f"Credit Balance: {self.getBalance()}\n"

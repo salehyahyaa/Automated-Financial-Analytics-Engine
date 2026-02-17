@@ -5,33 +5,8 @@ class DataAutomation:
         self._connection = connection
 
 
-    def store_link_token(self, link_token):
-        """Store link token. Note: Link tokens are temporary and typically not stored in DB."""
-        # Note: plaid_items table doesn't have a link_token column
-        # This method is provided per request but link tokens are single-use and expire
-        cur = self._connection.cursor()
-        try:
-            # If you add a link_token column to plaid_items, uncomment below:
-            # cur.execute(
-            #     """
-            #     INSERT INTO plaid_items (link_token, status)
-            #     VALUES (%s, 'pending')
-            #     RETURNING id
-            #     """,
-            #     (link_token,)
-            # )
-            # item_db_id = cur.fetchone()[0]
-            # self._connection.get_connection().commit()
-            # return item_db_id
-            pass  # Link tokens are not stored - they're temporary
-        except Exception as e:
-            self._connection.get_connection().rollback()
-            raise Exception(f"Failed to store link token: {str(e)}")
-        finally:
-            cur.close()
-
-    def store_item_id(self, plaid_item_id):
-        """Store Plaid item_id into plaid_items table."""
+    def store_plaid_item_id(self, plaid_item_id):
+        """Store plaid_item_id into plaid_items table, Plaid has its own identifier for every account connected"""
         cur = self._connection.cursor()
         try:
             cur.execute(
@@ -42,17 +17,18 @@ class DataAutomation:
                 """,
                 (plaid_item_id,)
             )
-            item_db_id = cur.fetchone()[0]
+            plaid_items_id_column = cur.fetchone()[0]
             self._connection.get_connection().commit()
-            return item_db_id
+            return plaid_items_id_column
         except Exception as e:
             self._connection.get_connection().rollback()
             raise Exception(f"Failed to store item_id: {str(e)}")
         finally:
             cur.close()
+    
 
-    def store_access_token(self, access_token, plaid_item_db_id):
-        """Update access_token for an existing plaid_items row."""
+    def store_access_token(self, access_token, plaid_items_id_column):
+        """UPDATE access_token column into plaid_items table."""
         cur = self._connection.cursor()
         try:
             cur.execute(
@@ -62,45 +38,23 @@ class DataAutomation:
                 WHERE id = %s
                 RETURNING id
                 """,
-                (access_token, plaid_item_db_id)
+                (access_token, plaid_items_id_column)
             )
             result = cur.fetchone()
             if result:
-                item_db_id = result[0]
+                self._connection.get_connection().commit()
+                return result[0]
             else:
                 raise Exception("No row found to update")
-            self._connection.get_connection().commit()
-            return item_db_id
         except Exception as e:
             self._connection.get_connection().rollback()
             raise Exception(f"Failed to store access_token: {str(e)}")
         finally:
             cur.close()
 
-    def store_plaid_item(self, plaid_item_id, access_token):
-        """INSERT into plaid_items with both item_id and access_token. Returns the DB id for linking accounts."""
-        cur = self._connection.cursor()
-        try:
-            cur.execute(
-                """
-                INSERT INTO plaid_items (plaid_item_id, access_token, status)
-                VALUES (%s, %s, 'active')
-                RETURNING id
-                """,
-                (plaid_item_id, access_token)
-            )
-            item_db_id = cur.fetchone()[0]
-            self._connection.get_connection().commit()
-            return item_db_id
-        except Exception as e:
-            self._connection.get_connection().rollback()
-            raise Exception(f"Failed to store Plaid item: {str(e)}")
-        finally:
-            cur.close()
 
-
-    def store_accounts(self, accounts, plaid_item_db_id):
-        """INSERT each account into accounts. plaid_item_db_id is the FK to plaid_items.id."""
+    def store_accounts(self, accounts, plaid_items_id_column):
+        """INSERT each account into accounts. plaid_items_id_column is FK to plaid_items.id."""
         cur = self._connection.cursor()
         try:
             for account in accounts:
@@ -113,7 +67,7 @@ class DataAutomation:
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
                     """,
                     (
-                        plaid_item_db_id,
+                        plaid_items_id_column,
                         account.account_id,
                         account.name,
                         getattr(account, "mask", None),
