@@ -15,7 +15,7 @@ PLAID_SECRET = os.getenv("PLAID_SECRET")
 PLAID_ENV = os.getenv("PLAID_ENV")
 
 bank = PlaidConnector(PLAID_CLIENT_ID, PLAID_SECRET, PLAID_ENV)
-DataAutomation = DataAutomation(db)
+dataAutomation = DataAutomation(db)
 
 
 @router.get("/create_link_token", status_code = 200)                            #putting data in the html btn to get to plaid
