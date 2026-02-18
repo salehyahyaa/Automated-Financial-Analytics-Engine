@@ -3,7 +3,8 @@ from fastapi import APIRouter, HTTPException
 from fastapi import status 
 from dotenv import load_dotenv
 import os
-from database.Connection import Connection #from folder.file import class
+from database.Connection import Connection 
+from DataAutomation import DataAutomation 
 import psycopg2
 
 router = APIRouter()
@@ -14,6 +15,7 @@ PLAID_SECRET = os.getenv("PLAID_SECRET")
 PLAID_ENV = os.getenv("PLAID_ENV")
 
 bank = PlaidConnector(PLAID_CLIENT_ID, PLAID_SECRET, PLAID_ENV)
+DataAutomation = DataAutomation(db)
 
 
 @router.get("/create_link_token", status_code = 200)                            #putting data in the html btn to get to plaid
@@ -34,7 +36,8 @@ def getAccessToken(body: dict):                                                 
         if not public_token:                                                    #publicKey is what we send to Plaid to recive accessToken to login
             raise HTTPException(400, detail = "frontend needs PUBLIC TOKEN to request accessToken")
 
-        access_token = bank.exchange_public_token(public_token)         
+        access_token = bank.exchange_public_token(public_token) 
+        DataAutomation.store_access_token(access_token)
         if access_token == None:
             raise HTTPException(500, detail="Server error")
         return {"access_token": access_token}

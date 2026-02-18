@@ -12,6 +12,7 @@ from plaid import Environment
 #Purpose of this file is to hold our credientals and automate our verification to plaid everytime we send a req
 
 class PlaidConnector:
+    
     def __init__(self, client_id, secret, environment):             #we have our.envKeys here so we can automatically send our verification to Plaid since we have to verify oursleves with every req
         self.client_id = os.getenv("PLAID_CLIENT_ID")
         self.secret = os.getenv("PLAID_SECRET")
@@ -23,10 +24,9 @@ class PlaidConnector:
                 "secret": self.secret,
             }
         )
-
         api_client = ApiClient(self.config)                         #Creates the Plaid Client, allows authentication every req
-
         self.client = plaid_api.PlaidApi(api_client)
+
 
     def create_link_token(self):                                                             #PlaidDoc's made the method called create_link_token, we just call it here to use it
         request = LinkTokenCreateRequest(
@@ -41,11 +41,10 @@ class PlaidConnector:
         return response.link_token
 
 
-
     def exchange_public_token(self, public_token):#access_token //plaidDoc's made the method called that 
         request = ItemPublicTokenExchangeRequest(public_token=public_token)
         response = self.client.item_public_token_exchange(request)
-        return response.access_token
+        return response.access_token, response.plaid_item_id
 
 
     def getAccounts(self, access_token): # Pull real time balance information for each account associated
@@ -54,6 +53,6 @@ class PlaidConnector:
         accounts = response.accounts
         return accounts 
  
-    
+ 
     def getTransactions(self):
         ...

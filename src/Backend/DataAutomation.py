@@ -1,5 +1,10 @@
 class DataAutomation:
-    """Stores Plaid item and account data to the DB. Single responsibility; uses Connection (composition)."""
+    """
+    Stores Plaid item and account data to the DB. Single responsibility; uses Connection (composition).
+    plaid_item_id == represents a susccessful connection to a finaincal institution //not per account you have
+    plaid_items_id_colum == holds the PK of the row created by your specific query in your session.
+        //saves an extra query to db because insted of getting that most recent row you have that data already held in the felid
+    """
 
     def __init__(self, connection):
         self._connection = connection
@@ -28,7 +33,7 @@ class DataAutomation:
     
 
     def store_access_token(self, access_token, plaid_items_id_column):
-        """UPDATE access_token column into plaid_items table."""
+        """UPDATE access_token column FROM plaid_items table."""
         cur = self._connection.cursor()
         try:
             cur.execute(
@@ -53,36 +58,72 @@ class DataAutomation:
             cur.close()
 
 
-    def store_accounts(self, accounts, plaid_items_id_column):
-        """INSERT each account into accounts. plaid_items_id_column is FK to plaid_items.id."""
+    def store_checking_accounts(self, checking_accounts, plaid_items_id_column):
+        """INSERT into accounts table, Storing data for checking accounts //mask shows account to user without exposing account number"""
         cur = self._connection.cursor()
         try:
-            for account in accounts:
+            for account in checking_accounts:
                 cur.execute(
                     """
                     INSERT INTO accounts (
-                        plaid_item_id, plaid_account_id, name, mask, account_type,
-                        current_balance, balance_owed, credit_limit, currency_code, status, last_synced_at
+                        plaid_item_id, plaid_account_id, bank, name, mask, account_type,
+                        current_balance, currency_code, status, last_synced_at
                     )
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
                     """,
                     (
                         plaid_items_id_column,
                         account.account_id,
+                        getattr(account, "bank", None),
                         account.name,
                         getattr(account, "mask", None),
                         account.type.value if hasattr(account.type, "value") else str(account.type),
                         account.balances.current if account.balances else None,
-                        account.balances.current if (account.balances and str(account.type).lower() == "credit") else None,
+                        account.balances.iso_currency_code if account.balances else "USD",
+                        "open",
+                    ),
+                )
+            self._connection.get_connection().commit()
+            return len(checking_accounts)
+        except Exception as e:
+            self._connection.get_connection().rollback()
+            raise Exception(f"Failed to store checking accounts: {str(e)}")
+        finally:
+            cur.close()
+
+
+    def store_credit_accounts(self, credit_accounts, plaid_items_id_column):
+        """INSERT creditC accounts into accounts table."""
+        cur = self._connection.cursor()
+        try:
+            for account in credit_accounts:
+                cur.execute(
+                    """
+                    INSERT INTO accounts (
+                        plaid_item_id, plaid_account_id, bank, name, mask, account_type,
+                        balance_owed, credit_limit, currency_code, status, last_synced_at
+                    )
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
+                    """,
+                    (
+                        plaid_items_id_column,
+                        account.account_id,
+                        getattr(account, "bank", None),
+                        account.name,
+                        getattr(account, "mask", None),
+                        account.type.value if hasattr(account.type, "value") else str(account.type),
+                        account.balances.current if account.balances else None,
+                        account.balances.current if account.balances else None,
                         getattr(account.balances, "limit", None) if account.balances else None,
                         account.balances.iso_currency_code if account.balances else "USD",
                         "open",
                     ),
                 )
             self._connection.get_connection().commit()
-            return len(accounts)
+            return len(credit_accounts)
         except Exception as e:
             self._connection.get_connection().rollback()
-            raise Exception(f"Failed to store accounts: {str(e)}")
+            raise Exception(f"Failed to store credit accounts: {str(e)}")
         finally:
             cur.close()
+
