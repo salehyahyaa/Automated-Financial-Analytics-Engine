@@ -3,9 +3,12 @@ from fastapi import APIRouter, HTTPException
 from fastapi import status 
 from dotenv import load_dotenv
 import os
+import json
+import time
 from database.Connection import Connection 
 from DataAutomation import DataAutomation 
 import psycopg2
+DEBUG_LOG = "/Users/salehyahya/Desktop/TechProjects/FinancialProject/.cursor/debug.log"
 
 router = APIRouter()
 db = Connection() 
@@ -48,7 +51,15 @@ def getAccessToken(body: dict):                                                 
     except HTTPException:
         raise
     except Exception as e:
+        try:#debug log logic
+            with open(DEBUG_LOG, "a") as f:                          
+                f.write(json.dumps({"location":"Endpoints.py:getAccessToken","message":"exception","data":{"type":type(e).__name__,"msg":str(e)},"timestamp":round(time.time()*1000),"hypothesisId":"D"}) + "\n")
+        except Exception:
+            pass
+            #end of debug log logic
         raise HTTPException(500, detail=f"Server error: {str(e)}")
+
+
 
 #currently adding database logic to store data when endpoiints execute 
 #need to refactor plaidConnector.py and endpoints.py 

@@ -44,7 +44,15 @@ class PlaidConnector:
     def exchange_public_token(self, public_token):#access_token //plaidDoc's made the method called that 
         request = ItemPublicTokenExchangeRequest(public_token=public_token)
         response = self.client.item_public_token_exchange(request)
-        return response.access_token, response.plaid_item_id
+        # #region agent log
+        try:#debug log
+            import json, time
+            with open("/Users/salehyahya/Desktop/TechProjects/FinancialProject/.cursor/debug.log", "a") as f:
+                f.write(json.dumps({"location":"PlaidConnector.py:exchange_public_token","message":"response attrs","data":{"has_item_id":hasattr(response,"item_id"),"has_plaid_item_id":hasattr(response,"plaid_item_id")},"timestamp":round(time.time()*1000),"hypothesisId":"A"}) + "\n")
+        except Exception:
+            pass
+        #end of debug log
+        return response.access_token, response.item_id
 
 
     def getAccounts(self, access_token): # Pull real time balance information for each account associated
