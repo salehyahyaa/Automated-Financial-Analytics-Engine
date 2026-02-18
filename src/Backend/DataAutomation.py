@@ -103,7 +103,7 @@ class DataAutomation:
                         plaid_item_id, plaid_account_id, bank, name, mask, account_type,
                         balance_owed, credit_limit, currency_code, status, last_synced_at
                     )
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
                     """,
                     (
                         plaid_items_id_column,
@@ -112,7 +112,6 @@ class DataAutomation:
                         account.name,
                         getattr(account, "mask", None),
                         account.type.value if hasattr(account.type, "value") else str(account.type),
-                        account.balances.current if account.balances else None,
                         account.balances.current if account.balances else None,
                         getattr(account.balances, "limit", None) if account.balances else None,
                         account.balances.iso_currency_code if account.balances else "USD",

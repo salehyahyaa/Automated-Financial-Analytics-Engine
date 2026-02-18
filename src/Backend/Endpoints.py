@@ -36,10 +36,14 @@ def getAccessToken(body: dict):                                                 
         if not public_token:                                                    #publicKey is what we send to Plaid to recive accessToken to login
             raise HTTPException(400, detail = "frontend needs PUBLIC TOKEN to request accessToken")
 
-        access_token = bank.exchange_public_token(public_token) 
-        DataAutomation.store_access_token(access_token)
+        access_token, plaid_item_id = bank.exchange_public_token(public_token)       #Assigmation is atomic either both get values or NONE
+        
         if access_token == None:
             raise HTTPException(500, detail="Server error")
+        
+        plaid_items_id_column = dataAutomation.store_plaid_item_id(plaid_item_id)   #trakcs insrted row of plaid_item_id so when  ID column auto increments we can store that ID and return it to plaid_items_id_column
+        dataAutomation.store_access_token(access_token, plaid_items_id_column)
+        
         return {"access_token": access_token}
     except HTTPException:
         raise
