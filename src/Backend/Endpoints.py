@@ -44,9 +44,8 @@ def getAccessToken(body: dict):                                                 
         if access_token == None:
             raise HTTPException(500, detail="Server error")
         
-        plaid_items_id_column = dataAutomation.store_plaid_item_id(plaid_item_id)   #trakcs insrted row of plaid_item_id so when  ID column auto increments we can store that ID and return it to plaid_items_id_column
-        dataAutomation.store_access_token(access_token, plaid_items_id_column)
-        
+        plaid_items_id_column = dataAutomation.store_plaid_item_id(plaid_item_id)   #tracks inserated row of plaid_item_id so when  ID column auto increments we can store that ID and return it to plaid_items_id_column
+        dataAutomation.store_access_token(access_token, plaid_items_id_column)   
         return {"access_token": access_token}
     except HTTPException:
         raise
@@ -55,14 +54,51 @@ def getAccessToken(body: dict):                                                 
             with open(DEBUG_LOG, "a") as f:                          
                 f.write(json.dumps({"location":"Endpoints.py:getAccessToken","message":"exception","data":{"type":type(e).__name__,"msg":str(e)},"timestamp":round(time.time()*1000),"hypothesisId":"D"}) + "\n")
         except Exception:
-            pass
-            #end of debug log logic
+            pass #end of debug log logic
+        raise HTTPException(500, detail=f"Server error: {str(e)}")
+
+
+@router.post("/sync_checking_accounts", status_code=200)
+def getCheckingAccounts():
+    try:
+        result = dataAutomation.get_latest_plaid_item()
+        if not result:
+            raise HTTPException(404, detail="No linked item_id found. Link a bank first.")
+        plaid_items_id_column, access_token = result
+        accounts = bank.getAccounts(access_token)
+        checking_accounts = [account for account in accounts if account.type and str(account.type).lower() == "depository"] #plaid uses depository to identify checking accounts
+        dataAutomation.store_checking_accounts(checking_accounts, plaid_items_id_column)
+        return {"stored": len(checking_accounts)}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(500, detail=f"Server error: {str(e)}")
+
+
+@router.post("/sync_credit_accounts", status_code=200)
+def getCreditAccounts():
+    try:
+        result = dataAutomation.get_latest_plaid_item()
+        if not result:
+            raise HTTPException(404, detail="No linked item found. Link a bank first.")
+        plaid_items_id_column, access_token = result
+        accounts = bank.getAccounts(access_token)
+        credit_accounts = [account for account in accounts if account.type and str(account.type).lower() == "credit"] #plaid uses credit to identify credit accounts
+        dataAutomation.store_credit_accounts(credit_accounts, plaid_items_id_column)
+        return {"stored": len(credit_accounts)}
+    except HTTPException:
+        raise
+    except Exception as e:
         raise HTTPException(500, detail=f"Server error: {str(e)}")
 
 
 
-#currently adding database logic to store data when endpoiints execute 
-#need to refactor plaidConnector.py and endpoints.py 
-#the objective is to learn what we are adding and also get the db's data to be automatically stored
-#once done connect to accounts and check if rows are updated
-#move onto next task 
+
+"""
+-so everytime we create a link token //by starting program and clicking the connect bank account button
+-we are prompted to enter user login credentials(public token) whitch plaid exchanges into access_token to securly log in
+-plaid then creates an item_id(unique identifier) to represent every successful connection to a finaincal institution
+-from that item_id our syncCredit/Checking endpoints processes every new linked connection    //endpoints are statless so every endpoint sends the data recived to the db thanks to our DataAutomation class
+    for every iteration the sync_credit will filter for credit accounts and the sync_checking will filter for checking accounts
+    then it will add those accounts to the proper columns in the accounts table
+"""
