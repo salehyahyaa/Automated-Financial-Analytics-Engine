@@ -3,10 +3,12 @@ from fastapi import APIRouter, HTTPException
 from fastapi import status 
 from dotenv import load_dotenv
 import os
+import logging
 from database.Connection import Connection 
 from DataAutomation import DataAutomation 
-from DebugLogger import DebugLogger
 import psycopg2
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 db = Connection() 
@@ -17,7 +19,6 @@ PLAID_ENV = os.getenv("PLAID_ENV")
 
 bank = PlaidConnector(PLAID_CLIENT_ID, PLAID_SECRET, PLAID_ENV)
 dataAutomation = DataAutomation(db)
-debug_logger = DebugLogger()
 
 
 
@@ -29,7 +30,7 @@ def createLinkToken():
             raise HTTPException(500, detail = "Link Token Failed to create")    #only if we have no token returned #tackling potionel error's before actully telling endpoint what to do
         return {"link_token": link_token}                                       #return link_token 
     except Exception as e:
-        debug_logger.log_error("Endpoints.py:createLinkToken", e)
+        logger.error("Error creating link token", exc_info=True)
         raise HTTPException(500, detail = f"ServerSide Error: {str(e)}")
 
  
@@ -51,7 +52,7 @@ def getAccessToken(body: dict):                                                 
     except HTTPException:
         raise
     except Exception as e:
-        debug_logger.log_error("Endpoints.py:getAccessToken", e)
+        logger.error("Error exchanging public token", exc_info=True)
         raise HTTPException(500, detail=f"Server error: {str(e)}")
 
 
@@ -69,7 +70,7 @@ def getCheckingAccounts():
     except HTTPException:
         raise
     except Exception as e:
-        debug_logger.log_error("Endpoints.py:getCheckingAccounts", e)
+        logger.error("Error syncing checking accounts", exc_info=True)
         raise HTTPException(500, detail=f"Server error: {str(e)}")
 
 
@@ -87,7 +88,7 @@ def getCreditAccounts():
     except HTTPException:
         raise
     except Exception as e:
-        debug_logger.log_error("Endpoints.py:getCreditAccounts", e)
+        logger.error("Error syncing credit accounts", exc_info=True)
         raise HTTPException(500, detail=f"Server error: {str(e)}")
 
 
@@ -108,7 +109,7 @@ def syncTransactions(body: dict = None):
     except HTTPException:
         raise
     except Exception as e:
-        debug_logger.log_error("Endpoints.py:syncTransactions", e)
+        logger.error("Error syncing transactions", exc_info=True)
         raise HTTPException(500, detail=f"Server error: {str(e)}")
 
 

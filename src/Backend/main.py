@@ -3,10 +3,24 @@ from fastapi.middleware.cors import CORSMiddleware
 from Endpoints import router
 import pandas 
 import numpy as np
+import logging
+import os
+
+# Configure logging
+log_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".logs")
+os.makedirs(log_dir, exist_ok=True)
+
+logging.basicConfig(
+    level=logging.ERROR,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler(os.path.join(log_dir, "debug.log")),
+        logging.StreamHandler()  # Also log to console
+    ]
+)
 
 
 app = FastAPI()
-
 
 app.add_middleware( # CORS middleware
     CORSMiddleware,
@@ -18,14 +32,6 @@ app.add_middleware( # CORS middleware
 
 
 app.include_router(router)   
-
-
-
-
-
-
-
-
 
 
 

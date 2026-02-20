@@ -1,4 +1,4 @@
-from DebugLogger import DebugLogger
+import logging
 
 class DataAutomation:
     """
@@ -10,7 +10,7 @@ class DataAutomation:
 
     def __init__(self, connection):
         self._connection = connection
-        self.debug_logger = DebugLogger()
+        self.logger = logging.getLogger(__name__)
 
 
     def store_plaid_item_id(self, plaid_item_id):
@@ -30,7 +30,7 @@ class DataAutomation:
             return plaid_items_id_column
         except Exception as e:
             self._connection.get_connection().rollback()
-            self.debug_logger.log_error("DataAutomation.py:store_plaid_item_id", e)
+            self.logger.error("Error storing plaid item id", exc_info=True)
             raise Exception(f"Failed to store item_id: {str(e)}")
         finally:
             cur.close()
@@ -75,7 +75,7 @@ class DataAutomation:
                 raise Exception("No row found to update")
         except Exception as e:
             self._connection.get_connection().rollback()
-            self.debug_logger.log_error("DataAutomation.py:store_access_token", e)
+            self.logger.error("Error storing access token", exc_info=True)
             raise Exception(f"Failed to store access_token: {str(e)}")
         finally:
             cur.close()
@@ -145,7 +145,7 @@ class DataAutomation:
             return len(credit_accounts)
         except Exception as e:
             self._connection.get_connection().rollback()
-            self.debug_logger.log_error("DataAutomation.py:store_credit_accounts", e)
+            self.logger.error("Error storing credit accounts", exc_info=True)
             raise Exception(f"Failed to store credit accounts: {str(e)}")
         finally:
             cur.close()
@@ -191,7 +191,7 @@ class DataAutomation:
             return inserted
         except Exception as e:
             self._connection.get_connection().rollback()
-            self.debug_logger.log_error("DataAutomation.py:store_transactions", e)
+            self.logger.error("Error storing transactions", exc_info=True)
             raise Exception(f"Failed to store transactions: {str(e)}")
         finally:
             cur.close()

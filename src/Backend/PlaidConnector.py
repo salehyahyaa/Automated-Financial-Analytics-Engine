@@ -1,5 +1,6 @@
 import plaid 
 import os
+import logging
 from plaid.model.country_code import CountryCode  
 from plaid.api import plaid_api
 from plaid.model.link_token_create_request import LinkTokenCreateRequest
@@ -9,18 +10,17 @@ from plaid import ApiClient, Configuration
 from plaid.model.accounts_balance_get_request import AccountsBalanceGetRequest
 from plaid.model.products import Products
 from plaid import Environment
-from plaid.model.transactions_get_request import TransactionsGetRequest #Plaid SDK to build the transcations API req
+from plaid.model.transactions_sync_request import TransactionsSyncRequest  # Plaid SDK for transactions sync API
 from datetime import date, timedelta
-from DebugLogger import DebugLogger
 #Purpose of this file is to hold our credientals and automate our verification to plaid everytime we send a req
 
-class PlaidConnector:
+
+class PlaidConnector:  # credentials + verification to Plaid on every request
     
-    def __init__(self, client_id, secret, environment):             #we have our.envKeys here so we can automatically send our verification to Plaid since we have to verify oursleves with every req
-        self.debug_logger = DebugLogger()
+    def __init__(self, client_id, secret, environment):
+        self.logger = logging.getLogger(__name__)
         self.client_id = os.getenv("PLAID_CLIENT_ID")
         self.secret = os.getenv("PLAID_SECRET")
-
         self.config = Configuration(
             host=Environment.Production,
             api_key={
@@ -28,7 +28,7 @@ class PlaidConnector:
                 "secret": self.secret,
             }
         )
-        api_client = ApiClient(self.config)                         #Creates the Plaid Client, allows authentication every req
+        api_client = ApiClient(self.config)  # Plaid client for auth on every request
         self.client = plaid_api.PlaidApi(api_client)
 
 
@@ -36,10 +36,9 @@ class PlaidConnector:
         request = LinkTokenCreateRequest(
             user=LinkTokenCreateRequestUser(client_user_id="USER"), 
             client_name="Automated Financial Analytics Engine",
-
-            products=[Products("transactions")],   #Products("auth"), <-add LATER              #need to establish whitch PlaidProducts you want to use otherwise you cannot use its endpoints                                                                                   
-            country_codes=[CountryCode("US")], 
-            language="en"
+            products=[Products("transactions")],  # which Plaid products; add Products("auth") later if needed
+            country_codes=[CountryCode("US")],
+            language="en",
         )
         response = self.client.link_token_create(request)
         return response.link_token
@@ -51,7 +50,7 @@ class PlaidConnector:
             response = self.client.item_public_token_exchange(request)
             return response.access_token, response.item_id
         except Exception as e:
-            self.debug_logger.log_error("PlaidConnector.py:exchange_public_token", e)
+            self.logger.error("Error exchanging public token", exc_info=True)
             raise
 
 
@@ -59,36 +58,59 @@ class PlaidConnector:
         try:
             request = AccountsBalanceGetRequest(access_token=access_token)
             response = self.client.accounts_balance_get(request)
-            accounts = response.accounts
-            return accounts
+            return response.accounts  # real-time balance for each account
         except Exception as e:
-            self.debug_logger.log_error("PlaidConnector.py:getAccounts", e)
+            self.logger.error("Error getting accounts", exc_info=True)
             raise 
  
  
-    def getTransactions(self, access_token, start_date=None, end_date=None):
+    def getTransactions(self, access_token, start_date=None, end_date=None, cursor=None):
         """Fetch transactions via access_token, returning transactions for * accounts under that Item. Paginates * transcations to accountID to link the transactions-accounts"""
         try:
-            end_date = end_date or date.today()                 #default to today if no end_date is provided
-            start_date = start_date or (end_date - timedelta(days=30) if hasattr(end_date, "__sub__") else date.today())   #Fetches last 30 days if no start_date is provided
-            if isinstance(start_date, str):
-                start_date = date.fromisoformat(start_date)
-            if isinstance(end_date, str):
-                end_date = date.fromisoformat(end_date)
             all_tx = []
-            offset = 0
-            count = 500
+            current_cursor = cursor or ""  # empty cursor = initial full sync
+            
             while True:
-                request = TransactionsGetRequest(access_token=access_token, start_date=start_date, end_date=end_date, count=count, offset=offset)
-                response = self.client.transactions_get(request)
-                tx = response.transactions
-                all_tx.extend(tx)
-                if len(tx) < count:
+                request = TransactionsSyncRequest(
+                    access_token=access_token,
+                    cursor=current_cursor
+                )
+                response = self.client.transactions_sync(request)
+                if hasattr(response, 'added') and response.added:
+                    all_tx.extend(response.added)  # Sync API: new transactions
+                if hasattr(response, 'modified') and response.modified:
+                    all_tx.extend(response.modified)  # updated versions (removed not included)
+                has_more = getattr(response, 'has_more', False)
+                if not has_more:
                     break
-                offset += count
+                current_cursor = getattr(response, 'next_cursor', None) or getattr(response, 'cursor', None)
+                if not current_cursor:
+                    break
+            if start_date or end_date:  # filter by date after fetch (Sync API has no date range)
+                if isinstance(start_date, str):
+                    start_date = date.fromisoformat(start_date)
+                if isinstance(end_date, str):
+                    end_date = date.fromisoformat(end_date)
+                if not end_date:
+                    end_date = date.today()
+                if not start_date:
+                    start_date = end_date - timedelta(days=30)
+                filtered_tx = []
+                for tx in all_tx:
+                    tx_date = getattr(tx, 'date', None) or getattr(tx, 'authorized_date', None)
+                    if tx_date:
+                        if isinstance(tx_date, str):
+                            tx_date = date.fromisoformat(tx_date[:10])
+                        elif hasattr(tx_date, 'date'):
+                            tx_date = tx_date.date()
+                        elif not isinstance(tx_date, date):
+                            continue
+                        if start_date <= tx_date <= end_date:
+                            filtered_tx.append(tx)
+                return filtered_tx    
             return all_tx
         except Exception as e:
-            self.debug_logger.log_error("PlaidConnector.py:getTransactions", e)
+            self.logger.error("Error getting transactions", exc_info=True)
             raise
 
 """
