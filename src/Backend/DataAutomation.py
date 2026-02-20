@@ -1,3 +1,5 @@
+from DebugLogger import DebugLogger
+
 class DataAutomation:
     """
     Stores Plaid item and account data to the DB. Single responsibility; uses Connection (composition).
@@ -8,6 +10,7 @@ class DataAutomation:
 
     def __init__(self, connection):
         self._connection = connection
+        self.debug_logger = DebugLogger()
 
 
     def store_plaid_item_id(self, plaid_item_id):
@@ -27,6 +30,7 @@ class DataAutomation:
             return plaid_items_id_column
         except Exception as e:
             self._connection.get_connection().rollback()
+            self.debug_logger.log_error("DataAutomation.py:store_plaid_item_id", e)
             raise Exception(f"Failed to store item_id: {str(e)}")
         finally:
             cur.close()
@@ -71,6 +75,7 @@ class DataAutomation:
                 raise Exception("No row found to update")
         except Exception as e:
             self._connection.get_connection().rollback()
+            self.debug_logger.log_error("DataAutomation.py:store_access_token", e)
             raise Exception(f"Failed to store access_token: {str(e)}")
         finally:
             cur.close()
@@ -140,6 +145,7 @@ class DataAutomation:
             return len(credit_accounts)
         except Exception as e:
             self._connection.get_connection().rollback()
+            self.debug_logger.log_error("DataAutomation.py:store_credit_accounts", e)
             raise Exception(f"Failed to store credit accounts: {str(e)}")
         finally:
             cur.close()
@@ -185,6 +191,7 @@ class DataAutomation:
             return inserted
         except Exception as e:
             self._connection.get_connection().rollback()
+            self.debug_logger.log_error("DataAutomation.py:store_transactions", e)
             raise Exception(f"Failed to store transactions: {str(e)}")
         finally:
             cur.close()

@@ -69,6 +69,7 @@ def getCheckingAccounts():
     except HTTPException:
         raise
     except Exception as e:
+        debug_logger.log_error("Endpoints.py:getCheckingAccounts", e)
         raise HTTPException(500, detail=f"Server error: {str(e)}")
 
 
