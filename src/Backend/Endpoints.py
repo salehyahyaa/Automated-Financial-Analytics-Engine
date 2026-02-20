@@ -3,12 +3,10 @@ from fastapi import APIRouter, HTTPException
 from fastapi import status 
 from dotenv import load_dotenv
 import os
-import json
-import time
 from database.Connection import Connection 
 from DataAutomation import DataAutomation 
+from DebugLogger import DebugLogger
 import psycopg2
-DEBUG_LOG = "/Users/salehyahya/Desktop/TechProjects/FinancialProject/.cursor/debug.log"
 
 router = APIRouter()
 db = Connection() 
@@ -19,6 +17,7 @@ PLAID_ENV = os.getenv("PLAID_ENV")
 
 bank = PlaidConnector(PLAID_CLIENT_ID, PLAID_SECRET, PLAID_ENV)
 dataAutomation = DataAutomation(db)
+debug_logger = DebugLogger()
 
 
 
@@ -30,6 +29,7 @@ def createLinkToken():
             raise HTTPException(500, detail = "Link Token Failed to create")    #only if we have no token returned #tackling potionel error's before actully telling endpoint what to do
         return {"link_token": link_token}                                       #return link_token 
     except Exception as e:
+        debug_logger.log_error("Endpoints.py:createLinkToken", e)
         raise HTTPException(500, detail = f"ServerSide Error: {str(e)}")
 
  
@@ -51,11 +51,7 @@ def getAccessToken(body: dict):                                                 
     except HTTPException:
         raise
     except Exception as e:
-        try:#debug log logic
-            with open(DEBUG_LOG, "a") as f:                          
-                f.write(json.dumps({"location":"Endpoints.py:getAccessToken","message":"exception","data":{"type":type(e).__name__,"msg":str(e)},"timestamp":round(time.time()*1000),"hypothesisId":"D"}) + "\n")
-        except Exception:
-            pass #end of debug log logic
+        debug_logger.log_error("Endpoints.py:getAccessToken", e)
         raise HTTPException(500, detail=f"Server error: {str(e)}")
 
 
@@ -90,6 +86,7 @@ def getCreditAccounts():
     except HTTPException:
         raise
     except Exception as e:
+        debug_logger.log_error("Endpoints.py:getCreditAccounts", e)
         raise HTTPException(500, detail=f"Server error: {str(e)}")
 
 
@@ -110,6 +107,7 @@ def syncTransactions(body: dict = None):
     except HTTPException:
         raise
     except Exception as e:
+        debug_logger.log_error("Endpoints.py:syncTransactions", e)
         raise HTTPException(500, detail=f"Server error: {str(e)}")
 
 
