@@ -117,40 +117,40 @@ def _clean_plaid_transactions(raw):
     """Takes raw transcational data from getTransactions() thats formatted in Plaids format whitch we turn into our desired dict data format to feed it into the sync-transactions
        tx = transaction(s), cat = category"""
     normalized = []
-    for t in raw:
-        tid = getattr(t, "transaction_id", None)
-        amt = getattr(t, "amount", None)
-        tx_date = getattr(t, "date", None) or getattr(t, "authorized_date", None)
-        if tid is None or amt is None or tx_date is None:
+    for tx in raw:
+        tid = getattr(tx, "transaction_id", None)
+        amount = getattr(tx, "amount", None)
+        tx_date = getattr(tx, "date", None) or getattr(tx, "authorized_date", None)
+        if tid is None or amount is None or tx_date is None:
             continue
         if hasattr(tx_date, "strftime"):
             date_str = tx_date.strftime("%Y-%m-%d")
         else:
             date_str = str(tx_date)[:10]
         tx_time = None
-        dt = getattr(t, "datetime", None) or getattr(t, "authorized_datetime", None)
+        dt = getattr(tx, "datetime", None) or getattr(tx, "authorized_datetime", None)
         if dt and hasattr(dt, "strftime"):
             tx_time = dt.strftime("%H:%M:%S")
         cat = None
-        if getattr(t, "personal_finance_category", None) and getattr(t.personal_finance_category, "primary", None):
-            cat = getattr(t.personal_finance_category.primary, "value", None) or str(t.personal_finance_category.primary)
-        elif getattr(t, "category", None):
-            cat = t.category[0] if isinstance(t.category, list) and t.category else str(t.category)
-        pending = bool(getattr(t, "pending", False))
+        if getattr(tx, "personal_finance_category", None) and getattr(tx.personal_finance_category, "primary", None):
+            cat = getattr(tx.personal_finance_category.primary, "value", None) or str(tx.personal_finance_category.primary)
+        elif getattr(tx, "category", None):
+            cat = tx.category[0] if isinstance(tx.category, list) and tx.category else str(tx.category)
+        pending = bool(getattr(tx, "pending", False))
         normalized.append({
-            "plaid_account_id": getattr(t, "account_id", None),
+            "plaid_account_id": getattr(tx, "account_id", None),
             "plaid_transaction_id": tid,
             "date": date_str,
-            "amount": amt,
+            "amount": amount,
             "transaction_time": tx_time,
-            "merchant_name": getattr(t, "merchant_name", None),
+            "merchant_name": getattr(tx, "merchant_name", None),
             "category": cat,
             "status": "pending" if pending else "posted",
-            "iso_currency_code": getattr(t, "iso_currency_code", None) or getattr(t, "unofficial_currency_code", None) or "USD",
+            "iso_currency_code": getattr(tx, "iso_currency_code", None) or getattr(tx, "unofficial_currency_code", None) or "USD",
         })
     return normalized
 
-#------------------------------------NOTES------------------------------------#
+#------------------------------------NOTES----------------------------------------------------------------------------------------#
 """
 -so everytime we create a link token //by starting program and clicking the connect bank account button
 -we are prompted to enter user login credentials(public token) whitch plaid exchanges into access_token to securly log in
