@@ -65,7 +65,7 @@ class PlaidConnector:
  
  
     def getTransactions(self, access_token, start_date=None, end_date=None):
-        """Fetch transactions Plaid(access_token). Returns transactions for all accounts under that Item. Paginates * transcations to accountID to link the transactions-accounts"""
+        """Fetch transactions via access_token, returning transactions for * accounts under that Item. Paginates * transcations to accountID to link the transactions-accounts"""
         end_date = end_date or date.today()                 #default to today if no end_date is provided
         start_date = start_date or (end_date - timedelta(days=30) if hasattr(end_date, "__sub__") else date.today())   #Fetches last 30 days if no start_date is provided
         if isinstance(start_date, str):

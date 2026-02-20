@@ -36,8 +36,19 @@
               return r.json();
             })
             .then(result => {
-              alert("Bank Connected!");
               console.log(result);
+              
+              // Sync accounts and transactions into the DB (uses latest linked item)
+              return fetch("http://127.0.0.1:5000/sync_checking_accounts", { method: "POST" })
+                .then(() => fetch("http://127.0.0.1:5000/sync_credit_accounts", { method: "POST" }))
+                .then(() => fetch("http://127.0.0.1:5000/sync-transactions", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: "{}"
+                }))
+                .then(() => {
+                  alert("Bank Connected! Accounts and transactions synced.");
+                });
             })
             .catch(err => {
               console.error("Error exchanging token:", err);
