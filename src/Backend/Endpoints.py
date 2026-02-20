@@ -21,6 +21,7 @@ bank = PlaidConnector(PLAID_CLIENT_ID, PLAID_SECRET, PLAID_ENV)
 dataAutomation = DataAutomation(db)
 
 
+
 @router.get("/create_link_token", status_code = 200)                            #putting data in the html btn to get to plaid
 def createLinkToken():
     try:
@@ -92,8 +93,64 @@ def getCreditAccounts():
         raise HTTPException(500, detail=f"Server error: {str(e)}")
 
 
+@router.post("/sync-transactions", status_code=200)
+def syncTransactions(body: dict = None):
+    """Catogorizes transcations recived from _clean_plaid_transactions to the bank account they came from whitch we know because of accountID, 
+       and then store related transcation data in the correct columns within the accounts table in our db, but only for the most recently linked item"""
+    try:
+        result = dataAutomation.get_latest_plaid_item()
+        if not result:
+            raise HTTPException(404, detail="No linked item found. Link a bank first.")
+        plaid_items_id_column, access_token = result
+        body = body or {}
+        raw = bank.getTransactions(access_token, start_date=body.get("start_date"), end_date=body.get("end_date"))
+        normalized = _clean_plaid_transactions(raw)
+        stored = dataAutomation.store_transactions(normalized, plaid_items_id_column)
+        return {"stored": stored, "fetched": len(raw)}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(500, detail=f"Server error: {str(e)}")
 
 
+def _clean_plaid_transactions(raw):
+    """Takes raw transcational data from getTransactions() thats formatted in Plaids format whitch we turn into our desired dict data format to feed it into the sync-transactions
+       tx = transaction(s), cat = category"""
+    normalized = []
+    for t in raw:
+        tid = getattr(t, "transaction_id", None)
+        amt = getattr(t, "amount", None)
+        tx_date = getattr(t, "date", None) or getattr(t, "authorized_date", None)
+        if tid is None or amt is None or tx_date is None:
+            continue
+        if hasattr(tx_date, "strftime"):
+            date_str = tx_date.strftime("%Y-%m-%d")
+        else:
+            date_str = str(tx_date)[:10]
+        tx_time = None
+        dt = getattr(t, "datetime", None) or getattr(t, "authorized_datetime", None)
+        if dt and hasattr(dt, "strftime"):
+            tx_time = dt.strftime("%H:%M:%S")
+        cat = None
+        if getattr(t, "personal_finance_category", None) and getattr(t.personal_finance_category, "primary", None):
+            cat = getattr(t.personal_finance_category.primary, "value", None) or str(t.personal_finance_category.primary)
+        elif getattr(t, "category", None):
+            cat = t.category[0] if isinstance(t.category, list) and t.category else str(t.category)
+        pending = bool(getattr(t, "pending", False))
+        normalized.append({
+            "plaid_account_id": getattr(t, "account_id", None),
+            "plaid_transaction_id": tid,
+            "date": date_str,
+            "amount": amt,
+            "transaction_time": tx_time,
+            "merchant_name": getattr(t, "merchant_name", None),
+            "category": cat,
+            "status": "pending" if pending else "posted",
+            "iso_currency_code": getattr(t, "iso_currency_code", None) or getattr(t, "unofficial_currency_code", None) or "USD",
+        })
+    return normalized
+
+#------------------------------------NOTES------------------------------------#
 """
 -so everytime we create a link token //by starting program and clicking the connect bank account button
 -we are prompted to enter user login credentials(public token) whitch plaid exchanges into access_token to securly log in
@@ -101,4 +158,14 @@ def getCreditAccounts():
 -from that item_id our syncCredit/Checking endpoints processes every new linked connection    //endpoints are statless so every endpoint sends the data recived to the db thanks to our DataAutomation class
     for every iteration the sync_credit will filter for credit accounts and the sync_checking will filter for checking accounts
     then it will add those accounts to the proper columns in the accounts table
+"""
+
+
+"""
+HOW WE CLEAN TRNASCATOINS DATA, ASSIGN IT TO THE CORRECT ACCOUNT, AND STORE IT IN THE DB:
+-So basically what you’re saying is we use PlaidConnector.py 's function getTransactions() to pull all the transactions from Plaid’s Item. 
+    An Item is an object from Plaid that holds a list of * the transactions across all accounts togther PER BANK (in 1 list), 
+-Then in Endpoints.py we use _clean_plaid_transactions to take that list of transactions per financial institution and turn it from Plaid’s format into our desired dictionary format. 
+- After that, the syncTransactions endpoint categorizes each transaction into the correct account column (and the other columns) in the database based on the transaction dict’s account ID.
+
 """

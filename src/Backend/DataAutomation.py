@@ -11,7 +11,7 @@ class DataAutomation:
 
 
     def store_plaid_item_id(self, plaid_item_id):
-        """Store plaid_item_id into plaid_items table, Plaid has its own identifier for every account connected"""
+        """Store plaid_item_id into plaid_items table. Returns the new row id (plaid_items_id_column)."""
         cur = self._connection.cursor()
         try:
             cur.execute(
@@ -20,7 +20,7 @@ class DataAutomation:
                 VALUES (%s, 'active')
                 RETURNING id
                 """,
-                (plaid_item_id,)
+                (plaid_item_id,),
             )
             plaid_items_id_column = cur.fetchone()[0]
             self._connection.get_connection().commit()
@@ -30,7 +30,25 @@ class DataAutomation:
             raise Exception(f"Failed to store item_id: {str(e)}")
         finally:
             cur.close()
-    
+
+    def get_latest_plaid_item(self):
+        """Return (plaid_items_id_column, access_token) for the most recent item with an access_token, or None, helps us retrive the item_id if n/a in memeory"""
+        cur = self._connection.cursor()
+        try:
+            cur.execute(
+                """
+                SELECT id, access_token
+                FROM plaid_items
+                WHERE access_token IS NOT NULL
+                ORDER BY id DESC
+                LIMIT 1
+                """,
+            )
+            row = cur.fetchone()
+            return (row[0], row[1]) if row else None
+        finally:
+            cur.close()
+
 
     def store_access_token(self, access_token, plaid_items_id_column):
         """UPDATE access_token column FROM plaid_items table."""
@@ -126,3 +144,55 @@ class DataAutomation:
         finally:
             cur.close()
 
+
+    def store_transactions(self, transactions, plaid_items_id_column):
+        """INSERT into account_transactions (account_id, plaid_transaction_id, amount, date, transaction_time, merchant_name, category, status, iso_currency_code). transactions: list of dicts with plaid_account_id, plaid_transaction_id, date, amount, transaction_time, merchant_name, category, status, iso_currency_code. Resolves plaid_account_id to account_id. ON CONFLICT DO NOTHING. Returns number inserted."""
+        if not transactions:
+            return 0
+        cur = self._connection.cursor()
+        try:
+            cur.execute("SELECT id, plaid_account_id FROM accounts WHERE plaid_item_id = %s", (plaid_items_id_column,))
+            plaid_to_account_id = {row[1]: row[0] for row in cur.fetchall()}
+            inserted = 0
+            for t in transactions:
+                account_id = plaid_to_account_id.get(t["plaid_account_id"])
+                if account_id is None:
+                    continue
+                cur.execute(
+                    """
+                    INSERT INTO account_transactions (
+                        account_id, plaid_transaction_id, amount, date, transaction_time,
+                        merchant_name, category, status, iso_currency_code
+                    )
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    ON CONFLICT (account_id, plaid_transaction_id) DO NOTHING
+                    """,
+                    (
+                        account_id,
+                        t["plaid_transaction_id"],
+                        t["amount"],
+                        t["date"],
+                        t.get("transaction_time"),
+                        t.get("merchant_name"),
+                        t.get("category"),
+                        t.get("status", "posted"),
+                        t.get("iso_currency_code") or "USD",
+                    ),
+                )
+                if cur.rowcount:
+                    inserted += 1
+            self._connection.get_connection().commit()
+            return inserted
+        except Exception as e:
+            self._connection.get_connection().rollback()
+            raise Exception(f"Failed to store transactions: {str(e)}")
+        finally:
+            cur.close()
+
+
+
+
+"""
+plaid_items_id_column:
+we store the recent id incremrented count in the vairable plaid_items_id_column to save a hit to the db, this is benficial for performace and scalability
+"""

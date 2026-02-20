@@ -9,6 +9,8 @@ from plaid import ApiClient, Configuration
 from plaid.model.accounts_balance_get_request import AccountsBalanceGetRequest
 from plaid.model.products import Products
 from plaid import Environment
+from plaid.model.transactions_get_request import TransactionsGetRequest #Plaid SDK to build the transcations API req
+from datetime import date, timedelta
 #Purpose of this file is to hold our credientals and automate our verification to plaid everytime we send a req
 
 class PlaidConnector:
@@ -62,5 +64,33 @@ class PlaidConnector:
         return accounts 
  
  
-    def getTransactions(self):
-        ...
+    def getTransactions(self, access_token, start_date=None, end_date=None):
+        """Fetch transactions Plaid(access_token). Returns transactions for all accounts under that Item. Paginates * transcations to accountID to link the transactions-accounts"""
+        end_date = end_date or date.today()                 #default to today if no end_date is provided
+        start_date = start_date or (end_date - timedelta(days=30) if hasattr(end_date, "__sub__") else date.today())   #Fetches last 30 days if no start_date is provided
+        if isinstance(start_date, str):
+            start_date = date.fromisoformat(start_date)
+        if isinstance(end_date, str):
+            end_date = date.fromisoformat(end_date)
+        all_tx = []
+        offset = 0
+        count = 500
+        while True:
+            request = TransactionsGetRequest(access_token=access_token, start_date=start_date, end_date=end_date, count=count, offset=offset)
+            response = self.client.transactions_get(request)
+            tx = response.transactions
+            all_tx.extend(tx)
+            if len(tx) < count:
+                break
+            offset += count
+        return all_tx
+
+"""
+HOW TRANSACTIONS WORK:
+-we use access_token over item_id because item_id just keeps track of connections, 
+whereas access_token is what allows us to access the sensative data from the connected institution,
+access_token returns * transcations for that item(item is a plaid object representing a bank connection returning * transcations associated with a bank)
+-//paginate: returns a big list of transcations in chunkcs(pages) since plaid only returns 500 transcations at a time
+we than req the transcations in batches(500/e) untill reciving all transcations,
+    whitch we than catoegorize via their accountID to link the transcations to correct account in the db
+"""
