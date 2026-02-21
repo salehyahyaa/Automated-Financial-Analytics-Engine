@@ -1,0 +1,21 @@
+"""
+# ---------- DESCRIPTIVE ----------
+    NET_CASH_FLOW = "net_cash_flow"
+    INCOME_SUMMARY = "income_summary"
+    EXPENSE_SUMMARY = "expense_summary"
+    MONTHLY_SPEND = "monthly_spend"
+    SAVINGS_RATE = "savings_rate"
+    INCOME_EXPENSE_RATIO = "income_expense_ratio"
+    CATEGORY_BREAKDOWN = "category_breakdown"
+    CASH_FLOW_SERIES = "cash_flow_series"
+    VOLATILITY = "volatility"
+    ANOMALY_DETECTION = "anomaly_detection"
+    MONTH_OVER_MONTH_CHANGE = "month_over_month_change"
+
+    # ---------- PREDICTIVE ----------
+    SAVINGS_PROJECTION = "savings_projection"
+    BALANCE_PROJECTION = "balance_projection"
+    RUNWAY = "runway"
+    SPENDING_TREND = "spending_trend"
+    SEASONALITY_ANALYSIS = "seasonality_analysis"
+"""
