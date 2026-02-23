@@ -37,3 +37,16 @@ Flags logic if anomaly decides something is unusual (Z-score, thresholds).
 # Summary: AnomalyDetector receives (x, mean, stddev) → computes Z → applies
 #          threshold → returns flags. No descriptive math lives here.
 # -----------------------------------------------------------------------------
+
+
+"""
+-Flags unusual transactions like:
+-A $900 restaurant charge when your average is $40
+-A duplicate transaction
+
+
+Time-Series Anomalies
+-Looks at trends over time:
+-Monthly spend jumps 3x
+-Daily balance drops faster than expected
+"""
