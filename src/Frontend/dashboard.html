@@ -6,6 +6,7 @@
   <title>Financial Engine – Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="dashboard.css" />
+  <script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
 </head>
 
 
@@ -33,35 +34,215 @@
       </div>
     </header>
 
-    <main class="main-single">
-      <section class="card">
-        <div class="card-inner">
-          <div class="pill-badge">
-            <span class="pill-dot"></span>
-            Live bank connection
+    <main class="main-with-chat">
+      <div class="chat-workspace">
+        <div class="chat-column" id="chat-column">
+          <div class="chat-resize-handle" id="chat-resize-handle" aria-label="Resize chat panel"></div>
+          <div class="chat-messages" id="chat-messages">
+            <div class="chat-message chat-message-assistant">
+            <div class="chat-message-bubble">
+              <p>Hi. I’m your Financial Engine assistant. Ask about your accounts, spending, or cash flow and I’ll help using your linked data.</p>
+            </div>
           </div>
-          <h2 class="card-title">Connect your first bank</h2>
-          <p class="card-sub">
-            Link a checking or credit account with Plaid to unlock live balances,
-            transaction analytics, and anomaly alerts.
-          </p>
-
-          <button class="cta-btn" id="connect-bank-btn">
-            <span class="cta-icon">+</span>
-            <span>Connect bank account</span>
-          </button>
+          </div>
+          <div class="chat-input-wrapper">
+            <textarea
+              id="chat-input"
+              class="chat-input"
+              placeholder="Ask anything..."
+              rows="1"
+            ></textarea>
+            <div class="chat-input-actions">
+              <div class="chat-mode-dropdown-wrap">
+                <button type="button" id="chat-extra-btn" class="chat-extra-button" aria-label="Chat mode" aria-haspopup="true" aria-expanded="false">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M15 18l-6-6 6-6"/>
+                  </svg>
+                </button>
+                <div class="chat-mode-dropdown" id="chat-mode-dropdown" role="menu">
+                  <button type="button" class="chat-mode-dropdown-item" data-action="connect-bank" role="menuitem">Connect bank account</button>
+                </div>
+              </div>
+              <button id="chat-send" class="send-button" aria-label="Send message">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M5 12l14-7-4 7 4 7z"/>
+                </svg>
+              </button>
+            </div>
+          </div>
         </div>
-      </section>
+      </div>
     </main>
   </div>
 
   <script>
-    const connectBtn = document.getElementById("connect-bank-btn");
-    if (connectBtn) {
-      connectBtn.addEventListener("click", function () {
-        alert("TODO: open Plaid Link using /create_link_token.");
+    const API_BASE = "http://127.0.0.1:5000";
+    let plaidHandler = null;
+    let openPlaidLink = function () {
+      alert("Cannot open Plaid Link. Make sure the backend is running on port 5000.");
+    };
+
+    (function initPlaid() {
+      fetch(API_BASE + "/create_link_token")
+        .then(function (res) {
+          if (!res.ok) throw new Error("HTTP " + res.status);
+          return res.json();
+        })
+        .then(function (data) {
+          plaidHandler = Plaid.create({
+            token: data.link_token,
+            onSuccess: function (public_token, metadata) {
+              fetch(API_BASE + "/exchange_public_token", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ public_token: public_token })
+              })
+                .then(function (r) {
+                  if (!r.ok) throw new Error("HTTP " + r.status);
+                  return r.json();
+                })
+                .then(function () {
+                  return fetch(API_BASE + "/sync_checking_accounts", { method: "POST" });
+                })
+                .then(function () { return fetch(API_BASE + "/sync_credit_accounts", { method: "POST" }); })
+                .then(function () {
+                  return fetch(API_BASE + "/sync-transactions", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: "{}"
+                  });
+                })
+                .then(function () {
+                  alert("Bank connected! Accounts and transactions synced.");
+                })
+                .catch(function (err) {
+                  console.error("Error connecting bank:", err);
+                  alert("Error connecting bank: " + err.message);
+                });
+            },
+            onExit: function (err, metadata) {
+              if (err) console.log("Plaid exit:", err, metadata);
+            },
+            onError: function (err, metadata) {
+              console.error("Plaid error:", err, metadata);
+              alert("Plaid error: " + (err.error_message || err.display_message || "Unknown error"));
+            }
+          });
+          openPlaidLink = function () {
+            if (plaidHandler) plaidHandler.open();
+          };
+        })
+        .catch(function (err) {
+          console.error("Error fetching link token:", err);
+        });
+    })();
+
+    (function initChatModeDropdown() {
+      var trigger = document.getElementById("chat-extra-btn");
+      var dropdown = document.getElementById("chat-mode-dropdown");
+      if (!trigger || !dropdown) return;
+
+      function closeDropdown() {
+        dropdown.classList.remove("is-open");
+        trigger.setAttribute("aria-expanded", "false");
+        document.removeEventListener("click", onDocumentClick);
+      }
+
+      function onDocumentClick(e) {
+        if (!dropdown.contains(e.target) && !trigger.contains(e.target)) closeDropdown();
+      }
+
+      trigger.addEventListener("click", function (e) {
+        e.stopPropagation();
+        var isOpen = dropdown.classList.toggle("is-open");
+        trigger.setAttribute("aria-expanded", isOpen ? "true" : "false");
+        if (isOpen) {
+          requestAnimationFrame(function () {
+            document.addEventListener("click", onDocumentClick);
+          });
+        } else {
+          document.removeEventListener("click", onDocumentClick);
+        }
+      });
+
+      dropdown.querySelectorAll(".chat-mode-dropdown-item").forEach(function (item) {
+        item.addEventListener("click", function (e) {
+          e.stopPropagation();
+          closeDropdown();
+          if (item.getAttribute("data-action") === "connect-bank") openPlaidLink();
+        });
+      });
+    })();
+
+    const chatMessages = document.getElementById("chat-messages");
+    const chatInput = document.getElementById("chat-input");
+    const chatSend = document.getElementById("chat-send");
+
+    function appendMessage(role, text) {
+      const wrap = document.createElement("div");
+      wrap.className = "chat-message " + (role === "user" ? "chat-message-user" : "chat-message-assistant");
+      const bubble = document.createElement("div");
+      bubble.className = "chat-message-bubble";
+      const p = document.createElement("p");
+      p.textContent = text;
+      bubble.appendChild(p);
+      wrap.appendChild(bubble);
+      chatMessages.appendChild(wrap);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function sendMessage() {
+      const text = (chatInput.value || "").trim();
+      if (!text) return;
+      chatInput.value = "";
+      appendMessage("user", text);
+      appendMessage("assistant", "Reply from the assistant will go here. Connect a backend chat endpoint to respond.");
+    }
+
+    if (chatSend) chatSend.addEventListener("click", sendMessage);
+    if (chatInput) {
+      chatInput.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" && !e.shiftKey) {
+          e.preventDefault();
+          sendMessage();
+        }
+      });
+      chatInput.addEventListener("input", function () {
+        this.style.height = "auto";
+        this.style.height = Math.min(this.scrollHeight, 140) + "px";
       });
     }
+
+    (function initChatResize() {
+      var column = document.getElementById("chat-column");
+      var handle = document.getElementById("chat-resize-handle");
+      if (!column || !handle) return;
+      var minW = 320;
+      var maxW = 720;
+      var startX = 0;
+      var startW = 0;
+
+      function onMouseMove(e) {
+        var dx = startX - e.clientX;
+        var newW = Math.min(maxW, Math.max(minW, startW + dx));
+        column.style.width = newW + "px";
+      }
+      function onMouseUp() {
+        document.removeEventListener("mousemove", onMouseMove);
+        document.removeEventListener("mouseup", onMouseUp);
+        document.body.style.cursor = "";
+        document.body.style.userSelect = "";
+      }
+      handle.addEventListener("mousedown", function (e) {
+        e.preventDefault();
+        startX = e.clientX;
+        startW = column.offsetWidth;
+        document.addEventListener("mousemove", onMouseMove);
+        document.addEventListener("mouseup", onMouseUp);
+        document.body.style.cursor = "col-resize";
+        document.body.style.userSelect = "none";
+      });
+    })();
   </script>
 </body>
 </html>
