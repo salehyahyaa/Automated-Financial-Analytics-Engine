@@ -158,7 +158,11 @@ def refreshAccountData():
     return {"Refreshed Acc Data": True}                              #return response in JSON to inform client as a repsonse
 
     
-
+#reflect current balance w/Pending //currently refelcting only posted 
+#encryt security data in db 
+#documentation on probelms faced with DB with refresh logic not refreshing and then after SQL logic in dataAutomation.py was fixed,
+# how you also had to add constriations to table schema to fix the issue, why is the table schema issue a probelm?
+#alter id to accuralty reflect number of accounts
 
 #------------------------------------NOTES----------------------------------------------------------------------------------------#
 """
