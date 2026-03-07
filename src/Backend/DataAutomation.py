@@ -93,7 +93,18 @@ class DataAutomation:
                         current_balance, currency_code, status, last_synced_at
                     )
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
-                    """,
+                    ON CONFLICT (plaid_item_id, plaid_account_id) 
+                    DO UPDATE SET
+                        bank = EXCLUDED.bank,
+                        name = EXCLUDED.name,
+                        mask = EXCLUDED.mask,
+                        account_type = EXCLUDED.account_type,
+                        current_balance = EXCLUDED.current_balance,
+                        currency_code = EXCLUDED.currency_code,
+                        status = EXCLUDED.status,
+                        last_synced_at = CURRENT_TIMESTAMP,
+                        updated_at = CURRENT_TIMESTAMP
+                    """, #when updating the row's data we need to assign the column(variable) its new data(value)
                     (
                         plaid_items_id_column,
                         account.account_id,
@@ -127,6 +138,18 @@ class DataAutomation:
                         balance_owed, credit_limit, currency_code, status, last_synced_at
                     )
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
+                    ON CONFLICT (plaid_item_id, plaid_account_id) 
+                    DO UPDATE SET 
+                    bank = EXCLUDED.bank, 
+                    name = EXCLUDED.name,
+                    mask = EXCLUDED.mask,
+                    account_type = EXCLUDED.account_type,
+                    balance_owed = EXCLUDED.balance_owed,
+                    credit_limit = EXCLUDED.credit_limit,
+                    currency_code = EXCLUDED.currency_code,
+                    status = EXCLUDED.status,
+                    last_synced_at = CURRENT_TIMESTAMP,
+                    updated_at = CURRENT_TIMESTAMP
                     """,
                     (
                         plaid_items_id_column,
