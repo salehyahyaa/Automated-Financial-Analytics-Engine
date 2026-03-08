@@ -30,3 +30,13 @@ k = 1 (normal range)
 k = 2 (conservative range)
 """
 
+
+
+"""
+FINAL FORUMLS MUST HAVE
+    SAVINGS_PROJECTION = "savings_projection"
+    BALANCE_PROJECTION = "balance_projection"
+    RUNWAY = "runway"
+    SPENDING_TREND = "spending_trend"
+    SEASONALITY_ANALYSIS = "seasonality_analysis"
+"""
