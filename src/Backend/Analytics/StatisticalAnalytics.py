@@ -1,8 +1,16 @@
 """
-=======================================================
-LAYER q — ANALYTICAL (Descriptive: Past & Present Only)
-=======================================================
+ANALYTICAL == Past & Present Only
+"""
+import pandas as pd
+import numpy as np 
+import math 
+import logging 
+import os 
 
+class StatisticalAnalytics:
+
+
+"""
 1. Net Cash Flow
 Net Cash Flow = sum(amount)
 
