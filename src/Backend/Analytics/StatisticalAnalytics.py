@@ -5,58 +5,10 @@ import pandas as pd
 import numpy as np 
 import logging
 from datetime import date, timedelta
-
+from collections import defaultdict
 class StatisticalAnalytics:
 
-
-"""
-1. Net Cash Flow
-Net Cash Flow = sum(amount)
-
-2. Income
-Income = sum(amount where amount > 0)
-
-3. Expenses
-Expenses = sum(amount where amount < 0)
-
-4. Monthly Spend
-Monthly Spend = sum(amount) grouped by month
-
-
-5. Burn Rate (Daily)
-Burn Rate = abs(total expenses over last 30 days) / 30
-
-6. Savings Rate
-Savings Rate = (Income - abs(Expenses)) / Income
-
-7. Income vs Expense Ratio
-Ratio = Income / abs(Expenses)
-
-8. Category Totals
-Category Total = sum(amount grouped by category)
-
-9. Category Share (%)
-Category Share = Category Total / Total Spending
-
-10. Rolling Average (7-Day Example)
-RollingAvg_7d(t) = (sum of amounts from t-6 through t) / 7
-
-11. Running Total (Cumulative Flow)
-Cumulative(t) = sum of all transaction amounts from start through time t
-
-12. Volatility (Standard Deviation)
-Volatility = sqrt( average( (x - mean)^2 ) )
-
-13. Z-Score (Anomaly Detection)
-Z = (x - mean) / standard_deviation
-Flag anomaly if abs(Z) > 2
-
-14. Month-Over-Month Change
-MoM = (ThisMonth - LastMonth) / LastMonth
-"""
-"""
-FINAL FORUMLS MUST HAVE
-    NET_CASH_FLOW = "net_cash_flow"
+    NET_CASH_FLOW = "net_cash_flow"                         #for enum category
     INCOME_SUMMARY = "income_summary"
     EXPENSE_SUMMARY = "expense_summary"
     MONTHLY_SPEND = "monthly_spend"
@@ -66,5 +18,4 @@ FINAL FORUMLS MUST HAVE
     CASH_FLOW_SERIES = "cash_flow_series"
     VOLATILITY = "volatility"
     ANOMALY_DETECTION = "anomaly_detection"
-    MONTH_OVER_MONTH_CHANGE = "month_over_month_change"
-"""
+    MONTH_OVER_MONTH_CHANGE = "month_over_month_change"    #for enum category
