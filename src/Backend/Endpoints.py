@@ -164,6 +164,7 @@ def refreshAccountData():
 # how you also had to add constriations to table schema to fix the issue, why is the table schema issue a probelm?
 #alter id to accuralty reflect number of accounts
 
+
 #------------------------------------NOTES----------------------------------------------------------------------------------------#
 """
 -so everytime we create a link token //by starting program and clicking the connect bank account button

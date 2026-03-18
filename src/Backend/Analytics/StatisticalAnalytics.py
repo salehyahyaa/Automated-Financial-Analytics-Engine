@@ -1,8 +1,37 @@
-import pandas as pd
 import numpy as np 
 import logging
-from datetime import date, timedelta
+
+from datetime import date, timedelta, datetime
 from collections import defaultdict
+from decimal import Decimal, InvalidOperation
+from typing import Any, Dict, Iterable, List, Optional, Sequence
+
+
+transaction = Dict[str, any] # transcations appear as dicts key==str, value==anything
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 class StatisticalAnalytics:
 
     NET_CASH_FLOW = "net_cash_flow"                         #for enum category
@@ -17,14 +46,10 @@ class StatisticalAnalytics:
     ANOMALY_DETECTION = "anomaly_detection"
     MONTH_OVER_MONTH_CHANGE = "month_over_month_change"    #for enum category
 
+
     @staticmethod
-    def net_cash_flow(transactions, month, months):
-        month = None
-        months = None
-        if not transactions: 
-            return 0.0 
-        if month:
-            transactions = ...
+    def net_cash_flow(transactions, month, months): #memebrs dont mean anything yet, currently decalring them
+        ...
 
 
 

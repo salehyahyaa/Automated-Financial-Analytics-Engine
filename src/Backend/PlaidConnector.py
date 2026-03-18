@@ -34,10 +34,10 @@ class PlaidConnector:  # credentials + verification to Plaid on every request
 
     def create_link_token(self):                                                             #PlaidDoc's made the method called create_link_token, we just call it here to use it
         request = LinkTokenCreateRequest(
-            user=LinkTokenCreateRequestUser(client_user_id="USER"), 
-            client_name="Automated Financial Analytics Engine",
-            products=[Products("transactions")],  # which Plaid products; add Products("auth") later if needed
-            country_codes=[CountryCode("US")],
+            user = LinkTokenCreateRequestUser(client_user_id="USER"), 
+            client_name = "Automated Financial Analytics Engine",
+            products = [Products("transactions")],  # which Plaid products; add Products("auth") later if needed
+            country_codes = [CountryCode("US")],
             language="en",
         )
         response = self.client.link_token_create(request)
@@ -65,7 +65,9 @@ class PlaidConnector:  # credentials + verification to Plaid on every request
  
  
     def getTransactions(self, access_token, start_date=None, end_date=None, cursor=None):
-        """Fetch transactions via access_token, returning transactions for * accounts under that Item. Paginates * transcations to accountID to link the transactions-accounts"""
+        """Fetch transactions via access_token, 
+           returning transactions for * accounts under that Item object. Paginates * transcations to accountID to link the transactions-accounts
+        """
         try:
             all_tx = []
             current_cursor = cursor or ""  # empty cursor = initial full sync
